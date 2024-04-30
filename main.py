@@ -1,22 +1,31 @@
+import os
 import cv2
 import numpy as np
 import pandas as pd
 
-df = pd.read_csv('data/annotations.csv')
+list = []
+def extract_features(image, label):
+    # Load an image
+    img_path = image
+    img = cv2.imread(img_path)
 
-def preprocess_image(image_path, target_size=(224, 224)):
-    # Read image using OpenCV
-    image = cv2.imread(image_path)
+    # Get image dimensions (height, width) and number of channels
+    height, width, channels = img.shape
+    metadata_dict = {
+        "Image_Path": img_path,
+        "Height": height,
+        "Width": width,
+        "Channels": channels,
+        "Class": label
+    }
+    list.append(metadata_dict)
 
-    # Resize image
-    image = cv2.resize(image, target_size)
+for file in os.listdir("data/vehicles"):
+    extract_features("data/vehicles/"+file, 1)
 
-    # Convert to numpy array and normalize pixel values
-    image_array = image.astype(np.float32) / 255.0
+for file in os.listdir("data/non-vehicles"):
+    extract_features("data/non-vehicles/"+file, 0)
 
-    return image_array
+df = pd.DataFrame.from_dict(list)
 
-
-# Example usage:
-image_path = 'path/to/your/image.jpg'
-preprocessed_image = preprocess_image(image_path)
+df.to_csv("annotations.csv", index=False)
